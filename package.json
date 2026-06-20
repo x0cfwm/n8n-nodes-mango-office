@@ -1,0 +1,54 @@
+{
+  "name": "n8n-nodes-mango-office",
+  "version": "0.1.0",
+  "description": "n8n community node for Mango Office VPBX (cloud telephony): calls, recordings, groups, users",
+  "keywords": [
+    "n8n-community-node-package",
+    "mango",
+    "mango-office",
+    "telephony",
+    "vpbx",
+    "cti"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "nikita",
+    "url": "https://github.com/x0cfwm"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/x0cfwm/n8n-nodes-mango-office.git"
+  },
+  "homepage": "https://github.com/x0cfwm/n8n-nodes-mango-office#readme",
+  "bugs": {
+    "url": "https://github.com/x0cfwm/n8n-nodes-mango-office/issues"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "rm -rf dist && tsc && npm run copy:assets",
+    "prepare": "npm run build",
+    "copy:assets": "mkdir -p dist/nodes/MangoOffice && cp nodes/MangoOffice/*.svg dist/nodes/MangoOffice/ 2>/dev/null || true",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/MangoOfficeApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/MangoOffice/MangoOffice.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "n8n-workflow": "*",
+    "typescript": "^5.5.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
