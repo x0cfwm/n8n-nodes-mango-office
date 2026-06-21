@@ -138,6 +138,12 @@ export class MangoOffice implements INodeType {
 							value: n,
 						})),
 					},
+					{
+						displayName: 'Offset',
+						name: 'offset',
+						type: 'number',
+						default: 0,
+					},
 				],
 			},
 
@@ -248,7 +254,9 @@ export class MangoOffice implements INodeType {
 					if (f.contextType) payload.context_type = f.contextType;
 					if (f.onlyAnswered === true) payload.context_status = 1;
 					if (f.searchString) payload.search_string = f.searchString;
-					if (f.limit) payload.limit = f.limit;
+					// limit + offset are MANDATORY for Mango /stats/calls/request (error 3103 if missing)
+					payload.limit = (f.limit as number) || 1000;
+					payload.offset = (f.offset as number) || 0;
 
 					const calls = await mangoFetchCalls.call(this, creds, payload);
 					for (const call of calls) {

@@ -129,10 +129,14 @@ export async function mangoFetchCalls(
 
 		const body = parseMaybeJson(full?.body ?? full);
 		const status: string | undefined = body?.status;
-		const list = body?.data?.list;
+		const data = body?.data;
+		// Mango returns `data` as an ARRAY of chunks, each with its own `list`: data[].list[]
+		const flat: IDataObject[] = Array.isArray(data)
+			? (data.flatMap((d: any) => (d?.list ?? [])) as IDataObject[])
+			: ((data?.list ?? []) as IDataObject[]);
+		const hasData = Array.isArray(data) ? data.length > 0 : !!data?.list;
 
-		if (Array.isArray(list)) return list as IDataObject[];
-		if (status === 'complete') return (body?.data?.list ?? []) as IDataObject[];
+		if (status === 'complete' || hasData) return flat;
 		if (status === 'not-found') {
 			throw new NodeApiError(this.getNode(), body ?? {}, {
 				message: 'Mango /stats/calls/result: key not found',
@@ -151,17 +155,27 @@ export async function mangoFetchCalls(
 	});
 }
 
-/** Convert an ISO datetime to Mango wall-clock string "YYYY-MM-DD HH:MM:SS" in UTC+3 (MSK). */
+/**
+ * Convert a datetime to Mango's expected string "DD.MM.YYYY HH:MM:SS".
+ * Mango rejects ISO "YYYY-MM-DD" (error 3104). For a naive datetime (no timezone,
+ * as n8n's fixed dateTime provides) the wall-clock components are used as-is and
+ * treated as Mango time (UTC+3). For a timezone-aware instant we convert to UTC+3.
+ */
 export function toMangoDate(input: string): string {
+	const m = String(input).match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?(Z|[+-]\d{2}:?\d{2})?/);
+	if (m && !m[7]) {
+		const [, y, mo, d, h, mi, s] = m;
+		return `${d}.${mo}.${y} ${h}:${mi}:${s || '00'}`;
+	}
 	const ms = new Date(input).getTime();
 	if (Number.isNaN(ms)) {
 		throw new Error(`Invalid date: ${input}`);
 	}
-	const d = new Date(ms + 3 * 3600 * 1000);
+	const dt = new Date(ms + 3 * 3600 * 1000);
 	const p = (n: number) => String(n).padStart(2, '0');
 	return (
-		`${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ` +
-		`${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())}`
+		`${p(dt.getUTCDate())}.${p(dt.getUTCMonth() + 1)}.${dt.getUTCFullYear()} ` +
+		`${p(dt.getUTCHours())}:${p(dt.getUTCMinutes())}:${p(dt.getUTCSeconds())}`
 	);
 }
 
