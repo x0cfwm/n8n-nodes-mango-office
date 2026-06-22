@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-mango-office",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "n8n community node for Mango Office VPBX (cloud telephony): calls, recordings, groups, users",
   "keywords": [
     "n8n-community-node-package",

@@ -247,8 +247,10 @@ export class MangoOffice implements INodeType {
 						start_date: toMangoDate(start),
 						end_date: toMangoDate(end),
 					};
-					const groupIds = csvToArray(f.groupIds);
-					const userIds = csvToArray(f.userIds);
+					// Mango requires group_ids / user_ids as INTEGERS. Passing them as
+					// strings makes the async stats job fail with result 5004 (verified live).
+					const groupIds = csvToArray(f.groupIds).map(Number).filter(Number.isFinite);
+					const userIds = csvToArray(f.userIds).map(Number).filter(Number.isFinite);
 					if (groupIds.length) payload.group_ids = groupIds;
 					if (userIds.length) payload.user_ids = userIds;
 					if (f.contextType) payload.context_type = f.contextType;
