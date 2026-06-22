@@ -136,7 +136,10 @@ export async function mangoFetchCalls(
 			: ((data?.list ?? []) as IDataObject[]);
 		const hasData = Array.isArray(data) ? data.length > 0 : !!data?.list;
 
-		if (status === 'complete' || hasData) return flat;
+		// Return ONLY when the job is complete. A 'work' response can already carry a
+		// partial first chunk; returning on it truncated the result to a few calls.
+		if (status === 'complete') return flat;
+		if (!status && hasData) return flat; // fallback: data present with no status field
 		if (status === 'not-found') {
 			throw new NodeApiError(this.getNode(), body ?? {}, {
 				message: 'Mango /stats/calls/result: key not found',
